@@ -1,0 +1,29 @@
+.contenedor{
+    gap: 1rem; 
+    padding-bottom: 1rem; 
+    overflow-x: auto;
+    height: calc(100vh - 175px);
+}
+.columna {
+    min-width: 250px; 
+    max-width: 250px; 
+    flex: 0 0 auto;
+}
+
+.material{
+    max-height: 90%;
+    overflow-y: scroll; 
+    scrollbar-width: none;
+}
+
+.pdf{
+    width: 100%; 
+    max-width: 200px; 
+    height: 120px; 
+    overflow: hidden; 
+    border: 1px solid #ccc;
+}
+.pdf .canvs{
+    width: 100%; 
+    height: auto;
+}

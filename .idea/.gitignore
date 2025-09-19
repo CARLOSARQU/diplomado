@@ -1,0 +1,37 @@
+# Default ignored files
+/shelf/
+/workspace.xml
+# Editor-based HTTP Client requests
+/httpRequests/
+# Datasource local storage ignored files
+/dataSources/
+/dataSources.local.xml
+
+# Composer
+/vendor/
+
+# Node (si usas npm)
+/node_modules/
+
+# Entornos
+.env
+.env.*
+
+# IDEs
+*.sublime-project
+*.sublime-workspace
+.idea/
+*.vscode/
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# CodeIgniter
+/writable/*
+!/writable/index.html
+!/writable/.htaccess
+
+# Logs y debug (si no quieres guardar nada)
+/writable/logs/*
+/writable/debugbar/*

@@ -1,0 +1,118 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+body {
+    background: url('../../personalice/img/fondo-principal.png') no-repeat center center fixed;
+    background-size: cover;
+    font-family: 'Poppins', sans-serif;
+    height: 100vh;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 20px;
+    box-shadow: 0px 8px 30px rgba(0, 0, 0, 0.15);
+    max-width: 800px;
+    width: 100%;
+    animation: fadeIn 0.8s ease-in-out;
+}
+
+.login-form {
+    flex: 1;
+    padding: 30px;
+}
+
+.login-form h1 {
+    text-align: center;
+    font-weight: 600;
+    font-size: 36px;
+    margin-bottom: 10px;
+    color: #1e2ba0;
+}
+
+.login-form .form-control {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    margin-bottom: 20px;
+    transition: border-color 0.3s;
+}
+
+.login-form .form-control:focus {
+    border-color: #1e2ba0;
+    box-shadow: 0 0 0 0.2rem rgba(24, 33, 121, 0.25);
+}
+
+.login-form .btn {
+    width: 100%;
+    padding: 12px;
+    background-color: #1e2ba0;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+}
+
+.login-form .btn:hover {
+    background-color: #0b36acbd;
+}
+
+.login-image {
+    flex: 1;
+    text-align: center;
+}
+
+.login-image img {
+    max-width: 400px;
+    border-radius: 15px;
+    box-shadow: 0px 4px 25px rgba(0, 0, 0, 0.2);
+}
+
+.text-center.mt-4 a {
+    color: #1e2ba0;
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.text-center.mt-4 a:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+    body {
+        background: url('../../personalice/img/fondo-principal.png') no-repeat center center fixed;
+    }
+    .login-container {
+        flex-direction: column;
+        max-width: 90%;
+    }
+
+    .login-image {
+        display: none;
+    }
+
+    .login-form h1 {
+        font-size: 28px;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

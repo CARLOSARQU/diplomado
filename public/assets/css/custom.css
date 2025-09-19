@@ -1,0 +1,57 @@
+html, body {
+    font-size: 14px; /* ajusta a tu gusto */
+}
+
+/* Aumentar tamaño base en todo el contenido */
+#content {
+    font-size: 1rem; /* 1rem = 16px si html tiene 16px */
+    line-height: 1.6; /* mejor legibilidad */
+    color: #333; /* un gris más suave que el negro */
+}
+
+/* Títulos dentro del contenido */
+#content h1,
+#content .h1 {
+    font-size: 2rem; /* 32px aprox */
+    font-weight: 600;
+}
+
+#content h3 {
+    font-size: 1.25rem; /* 20px */
+    font-weight: 400;
+    color: #555; /* un gris medio */
+}
+#content h3 strong{
+    font-size: 1.25rem; /* 20px */
+    font-weight: 400;
+    color: #ffffff; /* un gris medio */
+}
+
+/* Tarjetas (cards) más legibles */
+#content .card {
+    font-size: 1rem; /* texto dentro de tarjetas */
+}
+
+#content .card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+/* Listas dentro del contenido */
+#content .list-group-item {
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+/* Textos pequeños (small, muted) un poco más legibles */
+#content small,
+#content .text-muted {
+    font-size: 0.9rem;
+}
+
+/* Botones dentro del contenido */
+#content .btn {
+    font-size: 0.95rem;
+    padding: 0.45rem 0.9rem;
+}
+
