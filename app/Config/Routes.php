@@ -85,6 +85,8 @@ $routes->group('', ['filter' => 'auth'], static function ($routes) {
 // GESTIÓN DE USUARIOS
     $routes->group('', ['filter' => 'admin:1'], static function ($routes) {
 
+    $routes->get('usuarios/exportar-excel', 'UserController::exportarExcel');
+
     $routes->resource('usuarios', ['controller' => 'UserController']);
     });
         $routes->get('logout', 'ParticipanteLoginController::logout');

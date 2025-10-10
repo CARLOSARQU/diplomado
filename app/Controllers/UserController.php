@@ -4,6 +4,8 @@ namespace App\Controllers;
 
 use App\Models\UserModel; // Asegúrate de crear este modelo
 use App\Models\RoleModel; // Asegúrate de crear este modelo
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class UserController extends BaseController
 {
@@ -118,5 +120,39 @@ class UserController extends BaseController
         $userModel->delete($id);
         
         return redirect()->to('usuarios')->with('success', 'Usuario eliminado exitosamente.');
+    }
+
+    public function exportarExcel()
+    {
+        $usuarioModel = new UserModel();
+        $usuarios = $usuarioModel->findAll();
+
+        // Crear documento Excel
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // Encabezados
+        $sheet->setCellValue('A1', 'Apellido');
+        $sheet->setCellValue('B1', 'Nombre');
+
+        // Rellenar datos
+        $fila = 2;
+        foreach ($usuarios as $usuario) {
+            $sheet->setCellValue('A' . $fila, $usuario['apellidos']);
+            $sheet->setCellValue('B' . $fila, $usuario['nombres']);
+            $fila++;
+        }
+
+        // Descargar archivo
+        $writer = new Xlsx($spreadsheet);
+        $filename = 'usuarios_' . date('Ymd_His') . '.xlsx';
+
+        // Cabeceras para forzar la descarga
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header("Content-Disposition: attachment; filename=\"$filename\"");
+        header('Cache-Control: max-age=0');
+
+        $writer->save('php://output');
+        exit;
     }
 }

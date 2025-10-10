@@ -62,6 +62,10 @@
                         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createUserModal">
                             <i class="demo-pli-add-user fs-5 me-2"></i> Crear Nuevo Usuario
                         </button>
+                        <a href="<?= site_url('usuarios/exportar-excel') ?>" class="btn btn-success">
+    <i class="demo-pli-download fs-5 me-2"></i> Exportar a Excel
+</a>
+
                     </div>
                 </div>
 
