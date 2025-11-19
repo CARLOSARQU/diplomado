@@ -121,7 +121,7 @@
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a href="<?= site_url('reportes/asistencias') ?>" class="nav-link mininav-toggle">
+                                    <a href="<?= site_url('asistencias/reporte') ?>" class="nav-link mininav-toggle">
                                         <i class="demo-pli-bar-chart fs-5 me-2"></i>
                                         <span class="nav-label mininav-content ms-1">Reportes</span>
                                     </a>
@@ -160,6 +160,12 @@
                                     <a href="<?= site_url('participante/mis-pagos') ?>" class="nav-link mininav-toggle">
                                         <i class="demo-pli-credit-card-2"></i> 
                                         <span class="nav-label mininav-content ms-1">&nbsp;&nbsp;Mis pagos</span>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="<?= site_url('participante/mis-notas') ?>" class="nav-link mininav-toggle">
+                                        <i class="demo-pli-pen-5 fs-5 me-2"></i> 
+                                        <span class="nav-label mininav-content ms-1">Mis notas</span>
                                     </a>
                                 </li>
                             <?php endif; ?>

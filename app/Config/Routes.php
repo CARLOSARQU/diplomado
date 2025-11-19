@@ -33,6 +33,8 @@ $routes->group('', ['filter' => 'auth'], static function ($routes) {
         $routes->get('participante/mis-cursos', 'ParticipanteController::misCursos');
         $routes->get('participante/historial', 'AsistenciaController::misAsistencias');
     
+$routes->get('asistencias/reporte', 'AsistenciaController::reporteAdmin', ['filter' => 'auth']);
+$routes->get('asistencias/exportar-reporte-excel', 'AsistenciaController::exportarReporteExcel', ['filter' => 'auth']);
     $routes->group('', ['filter' => 'admin:1,2'], static function ($routes) {
 
     $routes->get('dashboard', 'DashboardController::index'); // Para Admins
@@ -40,6 +42,18 @@ $routes->group('', ['filter' => 'auth'], static function ($routes) {
     // Ruta para procesar el formulario de asignación
     $routes->post('cursos/asignar/(:num)', 'CursoController::guardarAsignacion/$1');
     // Dentro del grupo protegido ['filter' => 'auth']
+
+    // Aqui ruta para notas de admin
+    $routes->group('notas', static function ($routes) {
+        // Vista para gestionar notas de un módulo específico
+        $routes->get('modulo/(:num)', 'NotasController::gestionarNotas/$1');
+        
+        // Acción para guardar una nota (individual o múltiples)
+        $routes->post('guardar', 'NotasController::guardarNota');
+        
+        // Reportes de notas por curso (opcional)
+        $routes->get('reporte/curso/(:num)', 'NotasController::reporteCurso/$1');
+    });
 
     // Ruta para mostrar la página de inscripción
     $routes->get('cursos/inscribir/(:num)', 'CursoController::inscribir/$1');
@@ -98,6 +112,10 @@ $routes->group('', ['filter' => 'auth'], static function ($routes) {
 $routes->group('participante', ['filter' => 'auth'], static function ($routes) {
     
     $routes->get('mis-pagos', 'PagoController::index');
+    // Rutas para participantes
+    $routes->get('mis-notas', 'NotasController::misNotas');
+    $routes->get('notas/curso/(:num)', 'NotasController::verNotasCurso/$1');
+
     $routes->get('subir-comprobante/(:num)', 'PagoController::subirComprobante/$1');
     $routes->post('procesar-comprobante', 'PagoController::procesarComprobante');
 

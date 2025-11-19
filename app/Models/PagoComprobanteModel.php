@@ -27,8 +27,6 @@ class PagoComprobanteModel extends Model
         'participante_id' => 'required|integer|is_not_unique[users.id]',
         'modulo_id' => 'required|integer|is_not_unique[modulos.id]',
         'monto' => 'required|decimal|greater_than[0]',
-        //'identificador_pago' => 'required|min_length[5]|max_length[10]|alpha_numeric',
-        //'metodo_pago' => 'required|in_list[banco_nacion,pagalo_pe,caja]',
         'archivo_comprobante' => 'required',
         'fecha_pago' => 'required|valid_date'
     ];
@@ -45,12 +43,6 @@ class PagoComprobanteModel extends Model
         'monto' => [
             'required' => 'El monto es obligatorio.',
             'greater_than' => 'El monto debe ser mayor a 0.'
-        ],
-        'identificador_pago' => [
-            'required' => 'El identificador de pago es obligatorio.',
-            'min_length' => 'El identificador debe tener al menos 5 caracteres.',
-            'max_length' => 'El identificador no puede tener más de 10 caracteres.',
-            'alpha_numeric' => 'El identificador solo puede contener letras y números.'
         ]
     ];
 
@@ -75,7 +67,35 @@ class PagoComprobanteModel extends Model
     }
 
     /**
-     * Obtiene módulos sin pago de un participante
+     * Obtiene módulos sin pago aprobado (incluye sin pago o con pago rechazado)
+     * Este método permite que los módulos con pagos rechazados aparezcan nuevamente
+     */
+    public function getModulosSinPagoORechazo($participante_id)
+    {
+        $db = \Config\Database::connect();
+        
+        return $db->query("
+            SELECT DISTINCT 
+                m.id, 
+                m.nombre as modulo_nombre, 
+                c.nombre as curso_nombre, 
+                c.id as curso_id,
+                pc.estado as estado_pago,
+                pc.observaciones_admin as motivo_rechazo
+            FROM modulos m
+            INNER JOIN cursos c ON c.id = m.curso_id
+            INNER JOIN curso_participante cp ON cp.curso_id = c.id
+            LEFT JOIN pagos_comprobantes pc ON pc.modulo_id = m.id 
+                AND pc.participante_id = cp.participante_id
+            WHERE cp.participante_id = ?
+            AND c.estado = 1
+            AND (pc.id IS NULL OR pc.estado = 'rechazado')
+            ORDER BY c.nombre, m.orden
+        ", [$participante_id])->getResultArray();
+    }
+
+    /**
+     * Obtiene módulos sin pago (método original para compatibilidad)
      */
     public function getModulosSinPago($participante_id)
     {
@@ -95,22 +115,29 @@ class PagoComprobanteModel extends Model
     }
 
     /**
-     * Verifica si ya existe un comprobante para el participante y módulo
+     * Verifica si ya existe un comprobante APROBADO o EN_REVISION para el participante y módulo
+     * Los pagos rechazados NO bloquean la subida de nuevo comprobante
      */
     public function yaExistePago($participante_id, $modulo_id)
     {
         return $this->where('participante_id', $participante_id)
                    ->where('modulo_id', $modulo_id)
+                   ->whereIn('estado', ['aprobado', 'en_revision'])
                    ->countAllResults() > 0;
     }
 
     /**
      * Verifica si el identificador de pago ya existe
      */
-    public function identificadorExiste($identificador)
+    public function identificadorExiste($identificador, $excluir_id = null)
     {
-        return $this->where('identificador_pago', $identificador)
-                   ->countAllResults() > 0;
+        $query = $this->where('identificador_pago', $identificador);
+        
+        if ($excluir_id) {
+            $query->where('id !=', $excluir_id);
+        }
+        
+        return $query->countAllResults() > 0;
     }
 
     /**
@@ -190,6 +217,9 @@ class PagoComprobanteModel extends Model
         ]);
     }
 
+    /**
+     * Edita datos de un pago
+     */
     public function editarDatosPago($pago_id, $datos)
     {
         // Validar que el identificador no exista para otro pago
@@ -214,9 +244,8 @@ class PagoComprobanteModel extends Model
         ];
     }
 
-        /**
-     * Ingresos totales (sum) por período (solo pagos aprobados)
-     * $fechaInicio, $fechaFin: 'YYYY-MM-DD' (opcionales)
+    /**
+     * Ingresos totales por período (solo pagos aprobados)
      */
     public function ingresosPorPeriodo($fechaInicio = null, $fechaFin = null)
     {
@@ -264,6 +293,9 @@ class PagoComprobanteModel extends Model
             ->findAll();
     }
 
+    /**
+     * Obtiene detalle completo de un pago
+     */
     public function getPagoDetalle($id)
     {
         return $this->select('

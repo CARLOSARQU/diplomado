@@ -95,6 +95,12 @@ Módulos de <?= esc($curso['nombre']) ?>
                                                     class="btn btn-sm btn-info" title="Gestionar Sesiones">
                                                     <i class="demo-psi-clock"></i> Sesiones
                                                 </a>
+                                                    <!-- Botón para gestionar notas -->
+    <a href="<?= site_url('notas/modulo/' . $modulo['id']) ?>" 
+        class="btn btn-sm btn-success" 
+        title="Gestionar Notas">
+        <i class="demo-pli-file-edit me-1"></i> Notas
+    </a>
                                                 <button type="button" class="btn btn-sm btn-warning edit-btn"
                                                     data-bs-toggle="modal" data-bs-target="#editModuloModal"
                                                     data-id="<?= $modulo['id'] ?>" data-nombre="<?= esc($modulo['nombre']) ?>"
@@ -111,6 +117,7 @@ Módulos de <?= esc($curso['nombre']) ?>
                                                     </button>
                                                 </form>
                                             </td>
+                                            
                                         </tr>
                                     <?php endforeach; ?>
                                 <?php endif; ?>

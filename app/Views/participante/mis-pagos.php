@@ -44,7 +44,7 @@
             <?php endif; ?>
             <!-- /ALERTAS -->
 
-            <!-- MÓDULOS SIN PAGO -->
+            <!-- MÓDULOS SIN PAGO O CON PAGO RECHAZADO -->
             <?php if (!empty($modulos_sin_pago)): ?>
             <div class="card border-0 shadow-sm mb-4">
                 <div class="card-header bg-warning-subtle py-3">
@@ -57,16 +57,35 @@
                     <div class="row">
                         <?php foreach ($modulos_sin_pago as $modulo): ?>
                         <div class="col-md-6 col-lg-4 mb-3">
-                            <div class="card border border-warning">
+                            <div class="card border <?= !empty($modulo['estado_pago']) && $modulo['estado_pago'] === 'rechazado' ? 'border-danger' : 'border-warning' ?>">
                                 <div class="card-body">
-                                    <h6 class="card-title"><?= esc($modulo['modulo_nombre']) ?></h6>
-                                    <!--<p class="card-text small text-muted">
-                                        <strong>Curso:</strong> <?= esc($modulo['curso_nombre']) ?>
-                                    </p>-->
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <h6 class="card-title mb-0"><?= esc($modulo['modulo_nombre']) ?></h6>
+                                        <?php if (!empty($modulo['estado_pago']) && $modulo['estado_pago'] === 'rechazado'): ?>
+                                            <span class="badge bg-danger">Rechazado</span>
+                                        <?php endif; ?>
+                                    </div>
+                                    
+                                    <?php if (!empty($modulo['costo'])): ?>
+                                        <p class="card-text small text-muted mb-2">
+                                            <strong>Costo:</strong> S/ <?= number_format($modulo['costo'], 2) ?>
+                                        </p>
+                                    <?php endif; ?>
+                                    
+                                    <?php if (!empty($modulo['estado_pago']) && $modulo['estado_pago'] === 'rechazado' && !empty($modulo['motivo_rechazo'])): ?>
+                                        <div class="alert alert-danger alert-sm p-2 mb-2">
+                                            <small>
+                                                <strong>Motivo:</strong><br>
+                                                <?= esc($modulo['motivo_rechazo']) ?>
+                                            </small>
+                                        </div>
+                                    <?php endif; ?>
+                                    
                                     <div class="d-grid">
                                         <a href="<?= site_url('participante/subir-comprobante/' . $modulo['id']) ?>" 
-                                           class="btn btn-warning btn-sm">
-                                            <i class="demo-pli-add me-1"></i> Subir Comprobante
+                                           class="btn <?= !empty($modulo['estado_pago']) && $modulo['estado_pago'] === 'rechazado' ? 'btn-danger' : 'btn-warning' ?> btn-sm">
+                                            <i class="<?= !empty($modulo['estado_pago']) && $modulo['estado_pago'] === 'rechazado' ? 'demo-pli-repeat-2' : 'demo-pli-add' ?> me-1"></i> 
+                                            <?= !empty($modulo['estado_pago']) && $modulo['estado_pago'] === 'rechazado' ? 'Reenviar Comprobante' : 'Subir Comprobante' ?>
                                         </a>
                                     </div>
                                 </div>
@@ -103,10 +122,11 @@
                                 <thead class="table-light">
                                     <tr>
                                         <th>Módulo</th>
-                                        <!--<th>Curso</th>-->
                                         <th>Monto</th>
-                                        <th>Método</th>
-                                        <th>ID Pago</th>
+                                        <?php if (array_filter($pagos_existentes, fn($p) => !empty($p['metodo_pago']))): ?>
+                                            <th>Método</th>
+                                            <th>ID Pago</th>
+                                        <?php endif; ?>
                                         <th>Fecha</th>
                                         <th class="text-center">Estado</th>
                                         <th>Comprobante</th>
@@ -116,21 +136,34 @@
                                     <?php foreach ($pagos_existentes as $pago): ?>
                                     <tr>
                                         <td><?= esc($pago['modulo_nombre']) ?></td>
-                                        <!--<td class="small"><?= esc($pago['curso_nombre']) ?></td>-->
                                         <td><strong>S/ <?= number_format($pago['monto'], 2) ?></strong></td>
-                                        <td>
-                                            <span class="badge bg-info">
-                                                <?php
-                                                $metodos = [
-                                                    'banco_nacion' => 'Banco de la Nación',
-                                                    'pagalo_pe' => 'Pagalo.pe',
-                                                    'caja' => 'Caja'
-                                                ];
-                                                echo $metodos[$pago['metodo_pago']] ?? $pago['metodo_pago'];
-                                                ?>
-                                            </span>
-                                        </td>
-                                        <td><code><?= esc($pago['identificador_pago']) ?></code></td>
+                                        
+                                        <?php if (array_filter($pagos_existentes, fn($p) => !empty($p['metodo_pago']))): ?>
+                                            <td>
+                                                <?php if (!empty($pago['metodo_pago'])): ?>
+                                                    <span class="badge bg-info">
+                                                        <?php
+                                                        $metodos = [
+                                                            'banco_nacion' => 'Banco de la Nación',
+                                                            'pagalo_pe' => 'Pagalo.pe',
+                                                            'caja' => 'Caja'
+                                                        ];
+                                                        echo $metodos[$pago['metodo_pago']] ?? $pago['metodo_pago'];
+                                                        ?>
+                                                    </span>
+                                                <?php else: ?>
+                                                    <span class="text-muted">-</span>
+                                                <?php endif; ?>
+                                            </td>
+                                            <td>
+                                                <?php if (!empty($pago['identificador_pago'])): ?>
+                                                    <code><?= esc($pago['identificador_pago']) ?></code>
+                                                <?php else: ?>
+                                                    <span class="text-muted">-</span>
+                                                <?php endif; ?>
+                                            </td>
+                                        <?php endif; ?>
+                                        
                                         <td><?= date('d/m/Y', strtotime($pago['fecha_pago'])) ?></td>
                                         <td class="text-center">
                                             <?php
@@ -145,35 +178,48 @@
                                             <span class="badge <?= $estado_info[0] ?>"><?= $estado_info[1] ?></span>
                                         </td>
                                         <td>
-                                            <a href="<?= base_url('/uploads/comprobantes/' . $pago['archivo_comprobante']) ?>" 
+                                            <a href="<?= base_url('uploads/comprobantes/' . $pago['archivo_comprobante']) ?>" 
                                                target="_blank" class="btn btn-outline-primary btn-sm">
                                                 <i class="demo-pli-file me-1"></i> Ver
                                             </a>
                                         </td>
                                     </tr>
                                     
+                                    <!-- Fila de detalles para pagos rechazados o aprobados con observaciones -->
                                     <?php if ($pago['estado'] == 'rechazado' && !empty($pago['observaciones_admin'])): ?>
                                     <tr>
-                                        <td colspan="8" class="bg-danger-subtle">
-                                            <small class="text-danger">
-                                                <strong>Motivo del rechazo:</strong> <?= esc($pago['observaciones_admin']) ?>
-                                                <?php if (!empty($pago['revisor_nombres'])): ?>
-                                                    <br><strong>Revisado por:</strong> <?= esc($pago['revisor_nombres'] . ' ' . $pago['revisor_apellidos']) ?>
-                                                    el <?= date('d/m/Y H:i', strtotime($pago['fecha_revision'])) ?>
-                                                <?php endif; ?>
-                                            </small>
+                                        <td colspan="<?= array_filter($pagos_existentes, fn($p) => !empty($p['metodo_pago'])) ? '7' : '5' ?>" class="bg-danger-subtle">
+                                            <div class="d-flex align-items-start gap-2">
+                                                <i class="demo-pli-close text-danger mt-1"></i>
+                                                <div class="flex-grow-1">
+                                                    <small class="text-danger">
+                                                        <strong>Motivo del rechazo:</strong> <?= esc($pago['observaciones_admin']) ?>
+                                                        <?php if (!empty($pago['revisor_nombres'])): ?>
+                                                            <br><strong>Revisado por:</strong> <?= esc($pago['revisor_nombres'] . ' ' . $pago['revisor_apellidos']) ?>
+                                                            el <?= date('d/m/Y H:i', strtotime($pago['fecha_revision'])) ?>
+                                                        <?php endif; ?>
+                                                    </small>
+                                                </div>
+                                                <a href="<?= site_url('participante/subir-comprobante/' . $pago['modulo_id']) ?>" 
+                                                   class="btn btn-sm btn-danger">
+                                                    <i class="demo-pli-repeat-2 me-1"></i> Reenviar
+                                                </a>
+                                            </div>
                                         </td>
                                     </tr>
                                     <?php elseif ($pago['estado'] == 'aprobado' && !empty($pago['observaciones_admin'])): ?>
                                     <tr>
-                                        <td colspan="8" class="bg-success-subtle">
-                                            <small class="text-success">
-                                                <strong>Observaciones:</strong> <?= esc($pago['observaciones_admin']) ?>
-                                                <?php if (!empty($pago['revisor_nombres'])): ?>
-                                                    <br><strong>Aprobado por:</strong> <?= esc($pago['revisor_nombres'] . ' ' . $pago['revisor_apellidos']) ?>
-                                                    el <?= date('d/m/Y H:i', strtotime($pago['fecha_revision'])) ?>
-                                                <?php endif; ?>
-                                            </small>
+                                        <td colspan="<?= array_filter($pagos_existentes, fn($p) => !empty($p['metodo_pago'])) ? '7' : '5' ?>" class="bg-success-subtle">
+                                            <div class="d-flex align-items-start gap-2">
+                                                <i class="demo-pli-check text-success mt-1"></i>
+                                                <small class="text-success flex-grow-1">
+                                                    <strong>Observaciones:</strong> <?= esc($pago['observaciones_admin']) ?>
+                                                    <?php if (!empty($pago['revisor_nombres'])): ?>
+                                                        <br><strong>Aprobado por:</strong> <?= esc($pago['revisor_nombres'] . ' ' . $pago['revisor_apellidos']) ?>
+                                                        el <?= date('d/m/Y H:i', strtotime($pago['fecha_revision'])) ?>
+                                                    <?php endif; ?>
+                                                </small>
+                                            </div>
                                         </td>
                                     </tr>
                                     <?php endif; ?>
@@ -196,15 +242,15 @@
 <?= $this->section('page_js') ?>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // Cerrar alertas automáticamente después de 5 segundos
-    document.querySelectorAll('.alert').forEach(alertEl => {
+    // Cerrar alertas automáticamente después de 6 segundos
+    document.querySelectorAll('.alert:not(.alert-sm)').forEach(alertEl => {
         setTimeout(() => {
             try { 
                 bootstrap.Alert.getOrCreateInstance(alertEl).close(); 
             } catch(e) {
                 alertEl.style.display = 'none';
             }
-        }, 5000);
+        }, 6000);
     });
 });
 </script>

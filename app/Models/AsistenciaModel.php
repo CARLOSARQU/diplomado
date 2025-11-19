@@ -6,19 +6,19 @@ use CodeIgniter\Model;
 
 class AsistenciaModel extends Model
 {
-    protected $table            = 'asistencias';
-    protected $primaryKey       = 'id';
+    protected $table = 'asistencias';
+    protected $primaryKey = 'id';
     protected $useAutoIncrement = true;
-    protected $returnType       = 'array';
-    protected $useSoftDeletes   = false;
-    protected $protectFields    = true;
-    protected $allowedFields    = ['sesion_id', 'participante_id', 'hora_registro', 'observaciones'];
+    protected $returnType = 'array';
+    protected $useSoftDeletes = false;
+    protected $protectFields = true;
+    protected $allowedFields = ['sesion_id', 'participante_id', 'hora_registro', 'observaciones'];
 
     // Dates
     protected $useTimestamps = true;
-    protected $dateFormat    = 'datetime';
-    protected $createdField  = 'created_at';
-    protected $updatedField  = 'updated_at';
+    protected $dateFormat = 'datetime';
+    protected $createdField = 'created_at';
+    protected $updatedField = 'updated_at';
 
     // Validation
     protected $validationRules = [
@@ -45,14 +45,14 @@ class AsistenciaModel extends Model
 
     // Callbacks
     protected $allowCallbacks = true;
-    protected $beforeInsert   = ['setHoraRegistro'];
-    protected $afterInsert    = [];
-    protected $beforeUpdate   = [];
-    protected $afterUpdate    = [];
-    protected $beforeFind     = [];
-    protected $afterFind      = [];
-    protected $beforeDelete   = [];
-    protected $afterDelete    = [];
+    protected $beforeInsert = ['setHoraRegistro'];
+    protected $afterInsert = [];
+    protected $beforeUpdate = [];
+    protected $afterUpdate = [];
+    protected $beforeFind = [];
+    protected $afterFind = [];
+    protected $beforeDelete = [];
+    protected $afterDelete = [];
 
     /**
      * Establece la hora de registro automáticamente si no se proporciona
@@ -71,8 +71,8 @@ class AsistenciaModel extends Model
     public function yaRegistroAsistencia($sesion_id, $participante_id)
     {
         return $this->where('sesion_id', $sesion_id)
-                    ->where('participante_id', $participante_id)
-                    ->countAllResults() > 0;
+            ->where('participante_id', $participante_id)
+            ->countAllResults() > 0;
     }
 
     /**
@@ -81,20 +81,20 @@ class AsistenciaModel extends Model
     public function getAsistenciasBySesion($sesion_id)
     {
         return $this->select('asistencias.*, users.nombres, users.apellidos, users.dni')
-                    ->join('users', 'users.id = asistencias.participante_id')
-                    ->where('asistencias.sesion_id', $sesion_id)
-                    ->orderBy('asistencias.created_at', 'ASC')
-                    ->findAll();
+            ->join('users', 'users.id = asistencias.participante_id')
+            ->where('asistencias.sesion_id', $sesion_id)
+            ->orderBy('asistencias.created_at', 'ASC')
+            ->findAll();
     }
 
     /**
      * Obtiene todas las asistencias de un participante
      */
     public function getAsistenciasByParticipante($participante_id)
-{
-    $db = \Config\Database::connect();
-    
-    $query = $db->query("
+    {
+        $db = \Config\Database::connect();
+
+        $query = $db->query("
         SELECT 
             a.id,
             a.sesion_id,
@@ -117,13 +117,13 @@ class AsistenciaModel extends Model
         WHERE a.participante_id = ?
         ORDER BY s.fecha DESC, s.hora_inicio DESC
     ", [$participante_id]);
-    
-    $result = $query->getResultArray();
-    
-    log_message('debug', 'getAsistenciasByParticipante - Participante: ' . $participante_id . ' - Resultados: ' . count($result));
-    
-    return $result;
-}
+
+        $result = $query->getResultArray();
+
+        log_message('debug', 'getAsistenciasByParticipante - Participante: ' . $participante_id . ' - Resultados: ' . count($result));
+
+        return $result;
+    }
 
 
     /**
@@ -132,7 +132,7 @@ class AsistenciaModel extends Model
     public function getEstadisticasCurso($curso_id)
     {
         $db = \Config\Database::connect();
-        
+
         // Total de sesiones del curso
         $totalSesiones = $db->table('sesiones')
             ->join('modulos', 'modulos.id = sesiones.modulo_id')
@@ -168,7 +168,7 @@ class AsistenciaModel extends Model
     public function getEstadisticasParticipanteCurso($participante_id, $curso_id)
     {
         $db = \Config\Database::connect();
-        
+
         // Total de sesiones del curso (hasta la fecha actual)
         $totalSesiones = $db->table('sesiones')
             ->join('modulos', 'modulos.id = sesiones.modulo_id')
@@ -237,18 +237,19 @@ class AsistenciaModel extends Model
         }
 
         return $this->select('asistencias.*, users.nombres, users.apellidos, users.dni,
-                             sesiones.titulo, sesiones.fecha, sesiones.hora_inicio, sesiones.hora_fin,
-                             cursos.nombre as curso_nombre, modulos.nombre as modulo_nombre')
-                    ->join('users', 'users.id = asistencias.participante_id')
-                    ->join('sesiones', 'sesiones.id = asistencias.sesion_id')
-                    ->join('modulos', 'modulos.id = sesiones.modulo_id')
-                    ->join('cursos', 'cursos.id = modulos.curso_id')
-                    ->where('sesiones.fecha >=', $fecha_inicio)
-                    ->where('sesiones.fecha <=', $fecha_fin)
-                    ->orderBy('sesiones.fecha', 'ASC')
-                    ->orderBy('sesiones.hora_inicio', 'ASC')
-                    ->orderBy('users.apellidos', 'ASC')
-                    ->findAll();
+                         sesiones.titulo, sesiones.fecha, sesiones.hora_inicio, sesiones.hora_fin,
+                         cursos.id as curso_id, cursos.nombre as curso_nombre, 
+                         modulos.nombre as modulo_nombre')
+            ->join('users', 'users.id = asistencias.participante_id')
+            ->join('sesiones', 'sesiones.id = asistencias.sesion_id')
+            ->join('modulos', 'modulos.id = sesiones.modulo_id')
+            ->join('cursos', 'cursos.id = modulos.curso_id')
+            ->where('sesiones.fecha >=', $fecha_inicio)
+            ->where('sesiones.fecha <=', $fecha_fin)
+            ->orderBy('sesiones.fecha', 'ASC')
+            ->orderBy('sesiones.hora_inicio', 'ASC')
+            ->orderBy('users.apellidos', 'ASC')
+            ->findAll();
     }
 
     /**
@@ -274,12 +275,12 @@ class AsistenciaModel extends Model
     {
         return $this->select('asistencias.*, users.nombres, users.apellidos,
                              sesiones.titulo, sesiones.fecha, cursos.nombre as curso_nombre')
-                    ->join('users', 'users.id = asistencias.participante_id')
-                    ->join('sesiones', 'sesiones.id = asistencias.sesion_id')
-                    ->join('modulos', 'modulos.id = sesiones.modulo_id')
-                    ->join('cursos', 'cursos.id = modulos.curso_id')
-                    ->orderBy('asistencias.created_at', 'DESC')
-                    ->limit($limite)
-                    ->findAll();
+            ->join('users', 'users.id = asistencias.participante_id')
+            ->join('sesiones', 'sesiones.id = asistencias.sesion_id')
+            ->join('modulos', 'modulos.id = sesiones.modulo_id')
+            ->join('cursos', 'cursos.id = modulos.curso_id')
+            ->orderBy('asistencias.created_at', 'DESC')
+            ->limit($limite)
+            ->findAll();
     }
 }

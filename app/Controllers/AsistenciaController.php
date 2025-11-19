@@ -70,8 +70,8 @@ class AsistenciaController extends BaseController
         // "presente" o "tarde" en observaciones (el modelo NO tiene columna 'estado')
         $ahora      = time();
         $inicio     = strtotime($sesion['fecha'] . ' ' . $sesion['hora_inicio']);
-        $tolerancia = 240 * 60; // 4 horas
-        $obs        = ($ahora > $inicio + $tolerancia) ? 'ausente' : 'presente';
+        $tolerancia = 480 * 60; // 8 horas
+        $obs        = ($ahora > $inicio + $tolerancia) ? 'tarde' : 'presente';
 
         // Usa el método del modelo que valida e inserta
         $resultado = $asistenciaModel->registrarAsistencia($sesion_id, $participante_id, $obs);
@@ -133,5 +133,80 @@ class AsistenciaController extends BaseController
     }
 
     return view('participante/historial', $data);
+}
+/**
+ * Reporte general de asistencias para Admin
+ */
+/**
+ * Reporte general de asistencias para Admin
+ */
+public function reporteAdmin()
+{
+    // Solo admin o superadmin
+    if (!in_array(session('rol_nombre'), ['admin', 'superadmin'])) {
+        return redirect()->to('dashboard');
+    }
+
+    $asistenciaModel = new AsistenciaModel();
+    $cursoModel = new CursoModel();
+    
+    // Obtener filtros
+    $curso_id = $this->request->getGet('curso_id');
+    $fecha_inicio = $this->request->getGet('fecha_inicio');
+    $fecha_fin = $this->request->getGet('fecha_fin');
+    
+    // Obtener asistencias según filtros
+    $asistencias = [];
+    if ($fecha_inicio && $fecha_fin) {
+        $asistencias = $asistenciaModel->getReportePorFecha($fecha_inicio, $fecha_fin);
+        
+        // Filtrar por curso si se especificó
+        if ($curso_id) {
+            $asistencias = array_filter($asistencias, function($a) use ($curso_id) {
+                return $a['curso_id'] == $curso_id;
+            });
+        }
+    }
+    
+    $data = [
+        'asistencias' => $asistencias,
+        'cursos' => $cursoModel->where('estado', 1)->findAll(),
+        'filtros' => [
+            'curso_id' => $curso_id,
+            'fecha_inicio' => $fecha_inicio,
+            'fecha_fin' => $fecha_fin
+        ]
+    ];
+
+    return view('asistencias/reporte_admin', $data);
+}
+public function exportarReporteExcel()
+{
+    if (!in_array(session('rol_nombre'), ['admin', 'superadmin'])) {
+        return redirect()->to('dashboard');
+    }
+
+    $asistenciaModel = new AsistenciaModel();
+    
+    $curso_id = $this->request->getGet('curso_id');
+    $fecha_inicio = $this->request->getGet('fecha_inicio');
+    $fecha_fin = $this->request->getGet('fecha_fin');
+    
+    if (!$fecha_inicio || !$fecha_fin) {
+        return redirect()->back()->with('error', 'Debe especificar un rango de fechas.');
+    }
+    
+    $asistencias = $asistenciaModel->getReportePorFecha($fecha_inicio, $fecha_fin);
+    
+    if ($curso_id) {
+        $asistencias = array_filter($asistencias, function($a) use ($curso_id) {
+            return $a['curso_id'] == $curso_id;
+        });
+    }
+    
+    // Aquí implementarías la exportación a Excel
+    // Puedes usar PhpSpreadsheet u otra librería
+    
+    return redirect()->back()->with('success', 'Exportación en desarrollo.');
 }
 }

@@ -1,7 +1,5 @@
 <?php
-
 namespace App\Controllers;
-
 use App\Models\PagoComprobanteModel;
 use App\Models\ModuloModel;
 use App\Models\CursoParticipanteModel;
@@ -23,8 +21,8 @@ class PagoController extends BaseController
         // Obtener pagos existentes
         $pagos_existentes = $pagoModel->getPagosByParticipante($participante_id);
 
-        // Obtener módulos sin pago
-        $modulos_sin_pago = $pagoModel->getModulosSinPago($participante_id);
+        // Obtener módulos sin pago O con pagos rechazados
+        $modulos_sin_pago = $pagoModel->getModulosSinPagoORechazo($participante_id);
 
         $data = [
             'pagos_existentes' => $pagos_existentes,
@@ -66,13 +64,19 @@ class PagoController extends BaseController
             return redirect()->back()->with('error', 'No estás inscrito en este curso.');
         }
 
-        // Verificar que no tenga ya un pago para este módulo
-        if ($pagoModel->yaExistePago($participante_id, $modulo_id)) {
-            return redirect()->back()->with('error', 'Ya tienes un comprobante subido para este módulo.');
+        // Verificar si existe un pago previo (para mostrar info del rechazo si aplica)
+        $pago_anterior = $pagoModel->where('participante_id', $participante_id)
+                                   ->where('modulo_id', $modulo_id)
+                                   ->first();
+
+        // Solo bloquear si tiene un pago APROBADO o EN REVISIÓN
+        if ($pago_anterior && in_array($pago_anterior['estado'], ['aprobado', 'en_revision'])) {
+            return redirect()->back()->with('error', 'Ya tienes un comprobante en proceso o aprobado para este módulo.');
         }
 
         $data = [
-            'modulo' => $modulo
+            'modulo' => $modulo,
+            'pago_rechazado' => ($pago_anterior && $pago_anterior['estado'] === 'rechazado') ? $pago_anterior : null
         ];
 
         return view('participante/subir-comprobante', $data);
@@ -94,8 +98,6 @@ class PagoController extends BaseController
         $rules = [
             'modulo_id' => 'required|integer',
             'monto' => 'required|decimal|greater_than[0]',
-            //'identificador_pago' => 'required|min_length[5]|max_length[10]|alpha_numeric',
-            //'metodo_pago' => 'required|in_list[banco_nacion,pagalo_pe,caja]',
             'fecha_pago' => 'required|valid_date',
             'comprobante' => 'uploaded[comprobante]|max_size[comprobante,5120]|ext_in[comprobante,jpg,jpeg,png,pdf]'
         ];
@@ -105,16 +107,16 @@ class PagoController extends BaseController
         }
 
         $modulo_id = $this->request->getPost('modulo_id');
-        //$identificador = $this->request->getPost('identificador_pago');
 
-        // Verificar duplicados
-        if ($pagoModel->yaExistePago($participante_id, $modulo_id)) {
-            return redirect()->back()->with('error', 'Ya tienes un comprobante para este módulo.');
+        // Verificar si hay un pago anterior
+        $pago_anterior = $pagoModel->where('participante_id', $participante_id)
+                                   ->where('modulo_id', $modulo_id)
+                                   ->first();
+
+        // Solo bloquear si existe y está aprobado o en revisión
+        if ($pago_anterior && in_array($pago_anterior['estado'], ['aprobado', 'en_revision'])) {
+            return redirect()->back()->with('error', 'Ya tienes un comprobante en proceso o aprobado para este módulo.');
         }
-
-        /*if ($pagoModel->identificadorExiste($identificador)) {
-            return redirect()->back()->withInput()->with('error', 'El identificador de pago ya existe.');
-        }*/
 
         // Subir archivo
         $archivo = $this->request->getFile('comprobante');
@@ -128,28 +130,44 @@ class PagoController extends BaseController
             }
 
             if ($archivo->move($uploadPath, $nombreArchivo)) {
-                // Guardar en base de datos
                 $data = [
                     'participante_id' => $participante_id,
                     'modulo_id' => $modulo_id,
                     'monto' => $this->request->getPost('monto'),
-                    'identificador_pago' => null,//$identificador,
-                    'metodo_pago' => null,//$this->request->getPost('metodo_pago'),
+                    'identificador_pago' => null,
+                    'metodo_pago' => null,
                     'archivo_comprobante' => $nombreArchivo,
                     'fecha_pago' => $this->request->getPost('fecha_pago'),
                     'observaciones' => $this->request->getPost('observaciones'),
                     'estado' => 'en_revision'
                 ];
 
-                if ($pagoModel->insert($data)) {
-                    return redirect()->to('participante/mis-pagos')
-                                   ->with('success', 'Comprobante subido exitosamente. Está en revisión.');
+                // Si existe un pago rechazado, actualizarlo en lugar de crear uno nuevo
+                if ($pago_anterior && $pago_anterior['estado'] === 'rechazado') {
+                    // Eliminar archivo antiguo si existe
+                    if (!empty($pago_anterior['archivo_comprobante'])) {
+                        $archivoAntiguo = $uploadPath . $pago_anterior['archivo_comprobante'];
+                        if (file_exists($archivoAntiguo)) {
+                            @unlink($archivoAntiguo);
+                        }
+                    }
+
+                    // Actualizar el registro existente
+                    $data['motivo_rechazo'] = null; // Limpiar motivo de rechazo anterior
+                    if ($pagoModel->update($pago_anterior['id'], $data)) {
+                        return redirect()->to('participante/mis-pagos')
+                                       ->with('success', 'Comprobante reenviado exitosamente. Está en revisión nuevamente.');
+                    }
+                } else {
+                    // Crear nuevo registro
+                    if ($pagoModel->insert($data)) {
+                        return redirect()->to('participante/mis-pagos')
+                                       ->with('success', 'Comprobante subido exitosamente. Está en revisión.');
+                    }
                 }
             }
         }
 
         return redirect()->back()->with('error', 'Error al subir el comprobante.');
     }
-
-    
 }
