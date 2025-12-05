@@ -1,7 +1,7 @@
 <?= $this->extend('layouts/main') ?>
 
 <?= $this->section('title') ?>
-    Gestión de Cursos
+Gestión de Cursos
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
@@ -49,7 +49,8 @@
                             <i class="demo-pli-list-view me-2 text-primary"></i> Listado de Cursos
                         </h4>
                         <?php if (session('rol_nombre') === 'superadmin' || session('rol_nombre') === 'admin'): ?>
-                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createCourseModal">
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                                data-bs-target="#createCourseModal">
                                 <i class="demo-pli-add me-2"></i> Crear Nuevo Curso
                             </button>
                         <?php endif; ?>
@@ -96,33 +97,45 @@
                                                 </span>
                                             </td>
                                             <td class="text-center align-middle">
-                                                <a href="<?= site_url('cursos/' . $curso['id'] . '/modulos') ?>" class="btn btn-sm btn-info" title="Gestionar Módulos">
+
+                                                <!-- BOTÓN MÓDULOS -->
+                                                <a href="<?= site_url('cursos/' . $curso['id'] . '/modulos') ?>"
+                                                    class="btn btn-sm btn-info" title="Gestionar Módulos">
                                                     <i class="demo-psi-diagram"></i> Módulos
                                                 </a>
 
+                                                <!-- NUEVO BOTÓN REPORTE -->
+                                                <a href="<?= site_url('reportes/participantes-curso/' . $curso['id']) ?>"
+                                                    class="btn btn-sm btn-dark" title="Ver Reporte Académico y Financiero">
+                                                    <i class="demo-psi-file-html"></i> Reporte
+                                                </a>
+
+                                                <!-- BOTÓN EDITAR -->
                                                 <button type="button" class="btn btn-sm btn-warning edit-btn"
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="#editCourseModal"
-                                                    data-id="<?= $curso['id'] ?>"
-                                                    data-nombre="<?= esc($curso['nombre']) ?>"
+                                                    data-bs-toggle="modal" data-bs-target="#editCourseModal"
+                                                    data-id="<?= $curso['id'] ?>" data-nombre="<?= esc($curso['nombre']) ?>"
                                                     data-descripcion="<?= esc($curso['descripcion']) ?>"
                                                     data-fecha_inicio="<?= esc($curso['fecha_inicio']) ?>"
                                                     data-fecha_fin="<?= esc($curso['fecha_fin']) ?>"
-                                                    data-estado="<?= esc($curso['estado']) ?>"
-                                                    title="Editar Curso">
+                                                    data-estado="<?= esc($curso['estado']) ?>" title="Editar Curso">
                                                     <i class="demo-psi-pen-5"></i>
                                                 </button>
 
                                                 <?php if (session('rol_nombre') === 'superadmin'): ?>
-                                                    <a href="<?= site_url('cursos/asignar/' . $curso['id']) ?>" class="btn btn-sm btn-success" title="Asignar Docentes">
+                                                    <a href="<?= site_url('cursos/asignar/' . $curso['id']) ?>"
+                                                        class="btn btn-sm btn-success" title="Asignar Docentes">
                                                         <i class="demo-psi-user-add"></i>
                                                     </a>
-                                                    <a href="<?= site_url('cursos/inscribir/' . $curso['id']) ?>" class="btn btn-sm btn-purple" title="Inscribir Participantes">
+                                                    <a href="<?= site_url('cursos/inscribir/' . $curso['id']) ?>"
+                                                        class="btn btn-sm btn-purple" title="Inscribir Participantes">
                                                         <i class="demo-psi-add-user"></i>
                                                     </a>
                                                 <?php endif; ?>
 
-                                                <form action="<?= site_url('cursos/delete/' . $curso['id']) ?>" method="post" class="d-inline" onsubmit="return confirm('¿Estás seguro de que quieres eliminar este curso?');">
+                                                <!-- BOTÓN ELIMINAR -->
+                                                <form action="<?= site_url('cursos/delete/' . $curso['id']) ?>" method="post"
+                                                    class="d-inline"
+                                                    onsubmit="return confirm('¿Estás seguro de que quieres eliminar este curso?');">
                                                     <?= csrf_field() ?>
                                                     <button type="submit" class="btn btn-sm btn-danger" title="Eliminar">
                                                         <i class="demo-psi-trash"></i>
@@ -207,7 +220,8 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Descripción</label>
-                        <textarea class="form-control" id="edit_descripcion" name="descripcion" rows="3" required></textarea>
+                        <textarea class="form-control" id="edit_descripcion" name="descripcion" rows="3"
+                            required></textarea>
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
@@ -240,25 +254,25 @@
 
 <?= $this->section('page_js') ?>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const editCourseModal = document.getElementById('editCourseModal');
-    editCourseModal.addEventListener('show.bs.modal', function (event) {
-        const button = event.relatedTarget;
-        const cursoId = button.getAttribute('data-id');
-        document.getElementById('edit_nombre').value = button.getAttribute('data-nombre');
-        document.getElementById('edit_descripcion').value = button.getAttribute('data-descripcion');
-        document.getElementById('edit_fecha_inicio').value = button.getAttribute('data-fecha_inicio');
-        document.getElementById('edit_fecha_fin').value = button.getAttribute('data-fecha_fin');
-        document.getElementById('edit_estado').value = button.getAttribute('data-estado');
-        // Actualiza la acción del formulario al endpoint correspondiente
-        document.getElementById('editCourseForm').action = `<?= site_url('cursos/update/') ?>${cursoId}`;
-    });
+    document.addEventListener('DOMContentLoaded', function () {
+        const editCourseModal = document.getElementById('editCourseModal');
+        editCourseModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const cursoId = button.getAttribute('data-id');
+            document.getElementById('edit_nombre').value = button.getAttribute('data-nombre');
+            document.getElementById('edit_descripcion').value = button.getAttribute('data-descripcion');
+            document.getElementById('edit_fecha_inicio').value = button.getAttribute('data-fecha_inicio');
+            document.getElementById('edit_fecha_fin').value = button.getAttribute('data-fecha_fin');
+            document.getElementById('edit_estado').value = button.getAttribute('data-estado');
+            // Actualiza la acción del formulario al endpoint correspondiente
+            document.getElementById('editCourseForm').action = `<?= site_url('cursos/update/') ?>${cursoId}`;
+        });
 
-    // Mejora visual: cerrar alertas automáticamente después de 6s
-    const alerts = document.querySelectorAll('.alert');
-    alerts.forEach(a => setTimeout(() => {
-        try { bootstrap.Alert.getOrCreateInstance(a).close(); } catch(e) {}
-    }, 6000));
-});
+        // Mejora visual: cerrar alertas automáticamente después de 6s
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(a => setTimeout(() => {
+            try { bootstrap.Alert.getOrCreateInstance(a).close(); } catch (e) { }
+        }, 6000));
+    });
 </script>
 <?= $this->endSection() ?>

@@ -15,7 +15,7 @@
         "ext-mbstring": "*",
         "endroid/qr-code": "^6.0",
         "laminas/laminas-escaper": "^2.14",
-        "phpoffice/phpspreadsheet": "^5.1",
+        "phpoffice/phpspreadsheet": "^5.3",
         "psr/log": "^3.0"
     },
     "require-dev": {

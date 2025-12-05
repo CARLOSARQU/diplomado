@@ -12,7 +12,7 @@ class CursoParticipanteModel extends Model
     protected $returnType = 'array';
     protected $useSoftDeletes = false;
     protected $protectFields = true;
-    protected $allowedFields = ['curso_id', 'participante_id'];
+    protected $allowedFields = ['curso_id', 'participante_id', 'is_active'];
 
     // Dates
     protected $useTimestamps = true;
@@ -130,11 +130,11 @@ class CursoParticipanteModel extends Model
 
         $data = [];
         foreach ($participantes_ids as $participante_id) {
-            // Verificar que no esté ya inscrito
             if (!$this->isParticipanteInscrito($curso_id, $participante_id)) {
                 $data[] = [
                     'curso_id' => $curso_id,
-                    'participante_id' => $participante_id
+                    'participante_id' => $participante_id,
+                    'is_active' => 1 // Por defecto activo al inscribir
                 ];
             }
         }
@@ -145,7 +145,13 @@ class CursoParticipanteModel extends Model
 
         return $this->insertBatch($data);
     }
-
+    public function cambiarEstadoParticipante($curso_id, $participante_id, $estado)
+    {
+        return $this->where('curso_id', $curso_id)
+            ->where('participante_id', $participante_id)
+            ->set(['is_active' => $estado])
+            ->update();
+    }
     /**
      * Obtiene estadísticas de inscripciones
      */
